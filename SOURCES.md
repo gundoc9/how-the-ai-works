@@ -1,4 +1,4 @@
-# Sources and how far each was checked (v14, 3 September 2026)
+# Sources and how far each was checked (v19, 10 September 2026)
 
 What "checked" means here, in three grades:
 - **Full text read**: the paper was fetched and read in this session before the context was compacted; the numbers on the card were recorded at the time and one (six orders of magnitude) re-verified afterwards from the paper's own figure caption.
@@ -32,8 +32,11 @@ Every arXiv identifier came from a search result in this session, not from memor
 | Dosovitskiy 2020, ICLR 2021 | abstract | Images as tokens | pure transformer on image patches matches the convolutional networks of the time when pre-trained on large data; 16x16 patches from the title | abstract and title |
 | Singhal 2023, Nature 620:172-180 | abstract | Benchmark | 67.6% on MedQA (USMLE-style); human evaluation reveals gaps | abstract |
 | Sainz 2023, Findings of EMNLP | abstract | Benchmark | contamination inflates scores; extent unknown, hard to measure | abstract |
-| Packer 2023, arXiv 2310.08560 | abstract | Memory | virtual context management, text paged in and out of a fixed window like an operating system | abstract |
+| Packer 2023, arXiv 2310.08560 | abstract | Memory, Harness | virtual context management, text paged in and out of a fixed window like an operating system | abstract |
+| Zheng 2023, arXiv 2306.05685 | abstract | Evals | a strong model as judge agreed with human raters over 80% of the time, about the human-human level, with position, verbosity and self-enhancement biases | abstract (checked 9 Sep) |
+| Gallifant 2025, Nat Med 31:60-69 | abstract | Evals | TRIPOD-LLM reporting guideline: transparency, human oversight, task-specific performance reporting | abstract (checked 9 Sep) |
+| Sumers 2023, arXiv 2309.02427 | abstract | Harness | a language agent as a model plus modular memories, an action space and a decision procedure | abstract (checked 10 Sep) |
 
-Not checked: the body of any abstract-grade paper beyond the two sections named above. A full-text pass over the 22 is about twenty fetches and one session; the abstracts support every claim as it is now worded, so the risk is nuance, not contradiction.
+Not checked: the body of any abstract-grade paper beyond the two sections named above. A full-text pass over the 25 is about twenty-five fetches and one session; the abstracts support every claim as it is now worded, so the risk is nuance, not contradiction.
 
 Dr Ganesh Sivasankara · MD · FRCA · FCARCSI · Consultant Anaesthetist

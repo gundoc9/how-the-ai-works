@@ -1,6 +1,6 @@
 # How the AI you use works
 
-A dictionary of the machine behind the chat box, written for clinicians. Twenty-one terms, one per card. Each card carries a picture that responds to a control, one analogy, and the papers it rests on, with a note on how far each paper was checked.
+A dictionary of the machine behind the chat box, written for clinicians. Twenty-three terms, one per card. Each card carries a picture that responds to a control, one analogy from theatre life, and the papers it rests on, with a note on how far each paper was checked.
 
 Live at: https://gundoc9.github.io/how-the-ai-works/
 
