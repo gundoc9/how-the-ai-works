@@ -1,4 +1,4 @@
-# Sources and how far each was checked (v19, 10 September 2026)
+# Sources and how far each was checked (v22, 12 September 2026)
 
 What "checked" means here, in three grades:
 - **Full text read**: the paper was fetched and read in this session before the context was compacted; the numbers on the card were recorded at the time and one (six orders of magnitude) re-verified afterwards from the paper's own figure caption.
@@ -36,7 +36,8 @@ Every arXiv identifier came from a search result in this session, not from memor
 | Zheng 2023, arXiv 2306.05685 | abstract | Evals | a strong model as judge agreed with human raters over 80% of the time, about the human-human level, with position, verbosity and self-enhancement biases | abstract (checked 9 Sep) |
 | Gallifant 2025, Nat Med 31:60-69 | abstract | Evals | TRIPOD-LLM reporting guideline: transparency, human oversight, task-specific performance reporting | abstract (checked 9 Sep) |
 | Sumers 2023, arXiv 2309.02427 | abstract | Harness | a language agent as a model plus modular memories, an action space and a decision procedure | abstract (checked 10 Sep) |
+| Patel 2024, ISCA, arXiv 2311.18677 | abstract | Prefill and decode | two phases per request, compute-intensive prompt computation and memory-intensive token generation, the second one token at a time from the cached context | abstract (checked 12 Sep) |
 
-Not checked: the body of any abstract-grade paper beyond the two sections named above. A full-text pass over the 25 is about twenty-five fetches and one session; the abstracts support every claim as it is now worded, so the risk is nuance, not contradiction.
+Not checked: the body of any abstract-grade paper beyond the two sections named above. A full-text pass over the 26 is about twenty-six fetches and one session; the abstracts support every claim as it is now worded, so the risk is nuance, not contradiction.
 
 Dr Ganesh Sivasankara · MD · FRCA · FCARCSI · Consultant Anaesthetist
