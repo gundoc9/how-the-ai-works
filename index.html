@@ -103,6 +103,14 @@ input[type=text]::placeholder{color:var(--dim);opacity:1}
 footer{margin-top:26px;padding-top:14px;border-top:1px solid var(--line);font-size:12.5px;color:var(--dim);line-height:1.5}
 footer button{color:var(--accent);font-size:13px;min-height:44px}
 .errpill{position:fixed;left:12px;right:12px;bottom:12px;background:#822A24;color:#fff;font-family:var(--mono);font-size:12px;padding:10px 12px;border-radius:8px;display:none;z-index:9}
+.film-entry{display:grid;grid-template-columns:46px 1fr;column-gap:14px;align-items:center;width:100%;padding:12px 0;margin:8px 0 18px;border-top:1px solid var(--line);border-bottom:1px solid var(--line);min-height:68px}
+.film-entry .fe-disc{grid-column:1;grid-row:1 / span 2;width:46px;height:46px;border-radius:50%;background:var(--ink);color:var(--bg);display:flex;align-items:center;justify-content:center}
+.film-entry .fe-disc svg{width:24px;height:24px;display:block}
+.film-entry .fe-t{grid-column:2;font-family:var(--serif);font-size:24px;line-height:1.15}
+.film-entry .fe-s{grid-column:2;font-size:14.5px;line-height:1.4;color:var(--dim);margin-top:2px}
+.film-wide{width:min(1000px, calc(100vw - 32px - env(safe-area-inset-left) - env(safe-area-inset-right)));margin-left:calc((100% - min(1000px, calc(100vw - 32px - env(safe-area-inset-left) - env(safe-area-inset-right)))) / 2)}
+.film-wide .readout{max-width:760px;min-height:58px}
+.chip:disabled{cursor:default}
 @media (prefers-reduced-motion: reduce){ *{transition:none !important} }
 
 </style>
@@ -579,13 +587,13 @@ var CLAIMS = [
 
 var ABOUT = {
   intro:"A dictionary of the machine behind the chat box, written for clinicians who use it and would like to know what it is doing. One term per card, with a picture you can move, one analogy from theatre life, and the papers it rests on.",
-  live:"Cards marked Computed live draw their picture from a small language model built in your browser when this page opens: a tokeniser and a count-based next-token model trained on the text of these cards. The arithmetic for temperature, sampling and calibration is the real arithmetic, at toy scale.",
+  live:"Cards marked Computed live draw their picture from a small language model built in your browser when this page opens: a tokeniser and a count-based next-token model trained on the text of these cards. The arithmetic for temperature, sampling and calibration is the real arithmetic, at toy scale. The film Watch it write runs the same model, one token at a time.",
   formula:"Cards marked Published formula draw an equation from a named paper with its published constants.",
   diagram:"Cards marked Diagram draw a picture to explain a mechanism. Nothing in them is measured.",
   sim:"Cards marked Simulation run a real learning rule on rewards that this page sets. The learning is real; the rewards are invented to show it.",
   privacy:"Beyond this page and its icon nothing is downloaded, and nothing you type leaves your phone. Links to sources open only if you tap one.",
   more:[{t:"Reading the EEG", d:"the anaesthetic EEG, from the raw trace to burst suppression", link:"https://gundoc9.github.io/reading-the-eeg/"},{t:"Cannulation geometry", d:"entry angle, catheter length and where the tip ends up", link:"https://gundoc9.github.io/cannulation-geometry/"}],
-  version:"v22, built 12 September 2026"
+  version:"v24, built 1 October 2026"
 };
 if(typeof module!=="undefined") module.exports = {SOURCES:SOURCES, SECTIONS:SECTIONS, CARDS:CARDS, CLAIMS:CLAIMS, ABOUT:ABOUT};
 </script>
@@ -845,7 +853,7 @@ if(typeof module!=="undefined") module.exports = ENGINE;
 </script>
 <script>(function(){
   var THEME = {win:"#F7F3EA", ink:"#1B1A17", dim:"#5A5449", amber:"#6B5A00", amberLine:"#C8102E", grid:"#E9E4D8",
-    tints:["rgba(255,228,92,0.75)","rgba(0,0,0,0.06)","rgba(255,228,92,0.40)"], amberFill:"rgba(255,228,92,0.85)", bar:"#D3CDBE", fade:"rgba(247,243,234,0.82)", cool:"#1F3A93", coolText:"#1F3A93", hot:"#C8102E", hotText:"#B0102A", longLine:"#9C9689"};
+    tints:["rgba(255,228,92,0.75)","rgba(0,0,0,0.06)","rgba(255,228,92,0.40)"], amberFill:"rgba(255,228,92,0.85)", bar:"#D3CDBE", fade:"rgba(247,243,234,0.82)", cool:"#1F3A93", coolText:"#1F3A93", hot:"#C8102E", hotText:"#B0102A", longLine:"#9C9689", rule:"#DED7C6"};
   // colour is the temperature: cool below 1, amber at 1, hot above
   function rampBetween(T,c1,c2,c3){ var t,p,q; if(T<=1){ t=(T-0.2)/0.8; p=c1; q=c2; } else { t=(T-1)/1; p=c2; q=c3; } t=Math.max(0,Math.min(1,t)); return "rgb("+Math.round(p[0]+(q[0]-p[0])*t)+","+Math.round(p[1]+(q[1]-p[1])*t)+","+Math.round(p[2]+(q[2]-p[2])*t)+")"; }
   function ramp(T){ return rampBetween(T,[31,58,147],[27,26,23],[176,16,42]); }      // blue pen, ink, red pen (text weight)
@@ -887,6 +895,7 @@ if(typeof module!=="undefined") module.exports = ENGINE;
     if(m && cardById(m[1])) renderCard(root, cardById(m[1]));
     else if(h==="#/about") renderAbout(root);
     else if(h==="#/sources") renderSources(root);
+    else if(h==="#/watch") renderWatch(root);
     else renderIndex(root);
     window.scrollTo(0,0);
   }
@@ -923,6 +932,7 @@ if(typeof module!=="undefined") module.exports = ENGINE;
     // hero: the page’s own tokeniser cutting a sentence, so the first screen shows what the cards do
     var hero = el("div",{class:"instrument hero"}); var hc = el("canvas",{"aria-label":"This sentence cut into tokens", role:"img"}); hero.appendChild(hc); root.appendChild(hero);
     setTimeout(function(){ try{ drawHero(hc); }catch(e){ showErr("hero: "+(e&&e.message)); } },0);
+    root.appendChild(filmEntry("The small model on this page writes a sentence, one token at a time."));
     // how the five sections fit: one line each, tapping opens the section's first card
     var FIT = [["unit","A model reads your text as tokens and does one thing with them: it scores what comes next."],
                ["choice","Something has to pick from those scores, and the picking is where the randomness comes from."],
@@ -977,6 +987,7 @@ if(typeof module!=="undefined") module.exports = ENGINE;
     root.appendChild(el("h2",{class:"title",text:card.title}));
     root.appendChild(el("p",{class:"what",text:card.what}));
     root.appendChild(mountInstrument(card));
+    if(card.id==="next") root.appendChild(filmEntry("The scoring above, repeated one token at a time until the sentence ends."));
     var body = el("div",{class:"body"}); card.body.forEach(function(p){ body.appendChild(el("p",{text:p})); }); root.appendChild(body);
     if(card.analogy) root.appendChild(el("div",{class:"analogy"},[el("span",{class:"k",text:"One analogy"}), card.analogy]));
     var rel = el("div",{class:"related"},[el("span",{class:"cname",text:"Related"})]);
@@ -1539,6 +1550,441 @@ if(typeof module!=="undefined") module.exports = ENGINE;
     ro.textContent = msg[a];
   };
   function mulberry32(a){ return function(){ a|=0; a=a+0x6D2B79F5|0; var t=Math.imul(a^a>>>15,1|a); t=t+Math.imul(t^t>>>7,61|t)^t; return ((t^t>>>14)>>>0)/4294967296; }; }
+
+  // ---- film: "Watch it write". The loop from the Next token card, run live on this page's model, one token per pass.
+  // The opening run uses seed 2691, picked because its draws end in a full stop and include near ties (the page says so).
+  // Write again walks seeds 1, 2, 3 and shows whatever comes.
+  var FILM = {prompt:"the patient is", firstSeed:2691, K:6, max:14, idx:0, from:"#/", fromLabel:"All terms"};
+  function filmSeed(i){ return i===0 ? FILM.firstSeed : i; }
+  function tokLab(t){ var s = ENGINE.display(t).trim(); return s || "␣"; }
+  function tokBlock(t){ return ENGINE.display(t).replace(/^ /,"·"); }
+  function q(t){ return t==="." ? "the full stop" : (t==="," ? "the comma" : "“"+tokLab(t)+"”"); }
+  function cap(s){ return s.charAt(0).toUpperCase()+s.slice(1); }
+  function pc1(p){ return p<0.001 ? "under 0.1%" : (p*100).toFixed(1)+"%"; }
+  function ctxLabel(a,b){ return (ENGINE.display(a)+ENGINE.display(b)).replace(/^\s+/,""); }
+  function clamp01(x){ return x<0?0:(x>1?1:x); }
+  function easeIO(x){ x=clamp01(x); return x<0.5 ? 4*x*x*x : 1-Math.pow(-2*x+2,3)/2; }
+  function easeOut(x){ x=clamp01(x); return 1-Math.pow(1-x,3); }
+  function easeBack(x){ x=clamp01(x); var c1=1.4, c3=c1+1; return 1+c3*Math.pow(x-1,3)+c1*Math.pow(x-1,2); }
+  function lerp(a,b,t){ return a+(b-a)*t; }
+  function rFmt(r){ var t = r.toFixed(2); return (t==="0.00" || t==="1.00") ? r.toFixed(3) : t; }
+
+  function filmRun(seed){
+    var st = ENG.state, M = st.model;
+    var prompt = ENGINE.encodeText(FILM.prompt, st.merges, st.KMAX, st.cache);
+    var rnd = mulberry32(seed), seq = [ENGINE.BOS, ENGINE.BOS].concat(prompt), steps = [], ended = false;
+    for(var i=0;i<FILM.max;i++){
+      var p2 = seq[seq.length-2], p1 = seq[seq.length-1];
+      var d = ENGINE.distribution(M, p2, p1);
+      var all = Object.keys(d).map(function(w){ return [w, d[w]]; }).sort(function(a,b){ return b[1]-a[1] || (a[0]<b[0]?-1:1); });
+      // the draw: one random number, read against the scores laid end to end in order of size
+      var r = rnd(), acc = 0, j = all.length-1;
+      for(var k=0;k<all.length;k++){ if(r < acc+all[k][1]){ j = k; break; } acc += all[k][1]; }
+      var top = all.slice(0, FILM.K), restP = 0; for(k=FILM.K;k<all.length;k++) restP += all[k][1];
+      var n05 = all.filter(function(x){ return x[1]>0.005; }).length;
+      steps.push({p2:p2, p1:p1, top:top, restP:restP, restN:all.length-FILM.K, n:all.length, n05:n05, r:r, rank:j, tok:all[j][0], p:all[j][1], fav:all[0], at:acc});
+      seq.push(all[j][0]);
+      if(all[j][0]==="."){ ended = true; break; }
+    }
+    return {seed:seed, prompt:prompt, steps:steps, ended:ended};
+  }
+
+  // Phases per token: score (the list), lineup (the list laid end to end, first two tokens only), draw (the random point), add (the token joins the text).
+  // dT is the moving part, dH the hold after it. Reduced motion keeps the holds and drops the movement.
+  function filmTimeline(run, reduced){
+    var T = [], m = reduced ? 0 : 1;
+    run.steps.forEach(function(s,i){
+      if(i===0){ T.push({i:i, ph:"score", dT:0, dH:2300}); T.push({i:i, ph:"lineup", dT:1000*m, dH:1500}); T.push({i:i, ph:"draw", dT:700*m, dH:1700}); T.push({i:i, ph:"add", dT:850*m, dH:600}); }
+      else if(i===1){ T.push({i:i, ph:"score", dT:950*m, dH:1600}); T.push({i:i, ph:"lineup", dT:750*m, dH:500}); T.push({i:i, ph:"draw", dT:600*m, dH:1600}); T.push({i:i, ph:"add", dT:750*m, dH:450}); }
+      else { T.push({i:i, ph:"score", dT:700*m, dH:900}); T.push({i:i, ph:"draw", dT:450*m, dH:800}); T.push({i:i, ph:"add", dT:600*m, dH:300}); }
+    });
+    T.push({i:run.steps.length-1, ph:"end", dT:1200*m, dH:1e9});
+    var t0 = 0; T.forEach(function(e){ e.t0 = t0; t0 += e.dT + e.dH; });
+    return T;
+  }
+  function filmAt(F, t){
+    var T = F.T, e = T[0];
+    for(var k=0;k<T.length;k++){ if(t >= T[k].t0) e = T[k]; else break; }
+    var lt = t - e.t0;
+    return {e:e, i:e.i, ph:e.ph, p: e.dT>0 ? clamp01(lt/e.dT) : 1, lt:lt};
+  }
+  function filmStartOf(F, i, ph){ for(var k=0;k<F.T.length;k++){ if(F.T[k].i===i && F.T[k].ph===ph) return F.T[k]; } return null; }
+
+  function filmLayout(ctx, W, run){
+    var wide = W >= 600;
+    var S = wide ? (W >= 900 ? {tok:21, bh:40, pad:9, gx:7, rg:18, lab:15.5, pc:14, small:13, rowH:34, stripH:22}
+                             : {tok:19, bh:36, pad:8, gx:6, rg:17, lab:14, pc:13, small:12, rowH:31, stripH:20})
+                 : {tok:(W<350?14:15), bh:28, pad:6, gx:5, rg:13, lab:(W<300?12:13), pc:12, small:11, rowH:24, stripH:16};
+    var L = {W:W, wide:wide, S:S};
+    L.tw = wide ? Math.round(W*0.42) : W;
+    var toks = run.prompt.concat(run.steps.map(function(s){ return s.tok; }));
+    var x = 0, row = 0, pos = [];
+    toks.forEach(function(t){ var w = measure(ctx, tokBlock(t), S.tok) + S.pad*2; if(x>0 && x+w>L.tw){ row++; x = 0; } pos.push({x:x, row:row, w:w}); x += w + S.gx; });
+    L.textTop = wide ? 32 : 26;
+    pos.forEach(function(p){ p.y = L.textTop + p.row*(S.bh+S.rg); });
+    L.pos = pos; L.rows = row+1; L.nPrompt = run.prompt.length;
+    L.textBottom = L.textTop + L.rows*S.bh + (L.rows-1)*S.rg + 10;
+    // the scores: label column wide enough for every label in this run, so nothing jumps between tokens
+    L.sx = wide ? L.tw + 44 : 0; L.sw = W - L.sx;
+    L.headY = wide ? 14 : L.textBottom + 24;
+    L.restLab = "the other "+(run.steps[0].restN);
+    var labW = Math.max(measure(ctx, L.restLab, S.lab), measure(ctx, "the draw", S.lab));
+    run.steps.forEach(function(s){ s.top.forEach(function(t){ labW = Math.max(labW, measure(ctx, tokLab(t[0]), S.lab)); }); labW = Math.max(labW, measure(ctx, tokLab(s.tok), S.lab)); });
+    labW = Math.min(Math.ceil(labW)+4, Math.round(L.sw*0.4));
+    L.labR = L.sx + labW; L.x0 = L.labR + 9;
+    L.pcW = measure(ctx, "100.0%", S.pc) + 6;
+    L.bw = L.sx + L.sw - L.x0 - L.pcW - 2;      // the whole line, 0 to 1, in pixels
+    L.barsTop = L.headY + 10; L.nRows = FILM.K + 1;
+    L.stripTop = L.barsTop + L.nRows*S.rowH + 28;
+    L.H = Math.ceil(Math.max(L.stripTop + S.stripH + 20, L.textBottom + 12));
+    return L;
+  }
+
+  function filmDraw(F){
+    var L = F.L, S = L.S, ctx = F.ctx, run = F.run, cur = filmAt(F, F.t), s = run.steps[cur.i];
+    ctx.setTransform(F.dpr,0,0,F.dpr,0,0); ctx.globalAlpha = 1; ctx.fillStyle = THEME.win; ctx.fillRect(0,0,L.W,L.H);
+    window.__textBoxes = []; window.__rects = [];
+    var N = run.steps.length, ended = cur.ph==="end";
+    // how many drawn tokens are already in the text
+    var nGen = ended ? N : cur.i + ((cur.ph==="add" && cur.p>=1) ? 1 : 0);
+    var nText = L.nPrompt + nGen;
+
+    // ---- the text so far
+    text(ctx, ended ? "the text" : "the text so far", 0, 14, {size:S.small, color:THEME.dim});
+    ctx.strokeStyle = THEME.rule; ctx.lineWidth = 1;
+    for(var rr=0; rr<L.rows; rr++){ var ry = Math.round(L.textTop + rr*(S.bh+S.rg) + S.bh + 1) + 0.5; ctx.beginPath(); ctx.moveTo(0, ry); ctx.lineTo(L.tw, ry); ctx.stroke(); }
+    var passLab = ended ? N+(N===1?" pass":" passes") : "pass "+(cur.i+1);
+    text(ctx, passLab, L.tw, 14, {size:S.small, color:THEME.dim, align:"right"});
+    for(var k=0;k<nText;k++){
+      var P = L.pos[k];
+      ctx.fillStyle = k < L.nPrompt ? THEME.grid : ((k-L.nPrompt)%2===0 ? THEME.tints[0] : THEME.tints[2]);
+      roundRect(ctx, P.x, P.y, P.w, S.bh, 5); ctx.fill();
+      var tk = k < L.nPrompt ? run.prompt[k] : run.steps[k-L.nPrompt].tok;
+      text(ctx, tokBlock(tk), P.x+S.pad, P.y+S.bh*0.68, {size:S.tok, color:THEME.ink});
+    }
+    // the two tokens this model reads, bracketed under the text
+    if(!ended || cur.p < 0.35){
+      var brA = ended ? 1-clamp01(cur.p/0.35) : 1;
+      var endIdx = L.nPrompt + cur.i - 1;                  // last token before this pass
+      var slide = (cur.ph==="add") ? easeIO((cur.p-0.55)/0.45) : 0;
+      if(ended) endIdx = L.nPrompt + N - 1;
+      var b0 = bracketAt(L, endIdx), b1 = (cur.ph==="add" && cur.i < N-1) ? bracketAt(L, endIdx+1) : null;
+      var B = b0;
+      if(b1 && slide>0){ B = (b0.single && b1.single && b0.y===b1.y) ? {single:true, x1:lerp(b0.x1,b1.x1,slide), x2:lerp(b0.x2,b1.x2,slide), y:b0.y} : (slide>0.5 ? b1 : b0); }
+      drawBracket(ctx, B, brA);
+    }
+
+    // ---- the scores, the line and the draw
+    if(ended){
+      var cp = cur.p;
+      if(cp < 0.35){ drawScores(F, s, 1-easeIO(cp/0.35), 1, 1); }
+      else drawSummary(F, easeOut((cp-0.35)/0.65));
+    } else if(cur.ph==="score"){
+      if(cur.i===0) drawScores(F, s, 1, 0, 0, {noStrip:true});
+      else {
+        var prev = run.steps[cur.i-1];
+        if(cur.p < 0.35) drawScores(F, prev, 1-easeIO(cur.p/0.35), 1, 1);
+        else drawScores(F, s, easeOut((cur.p-0.35)/0.65), 0, 0, {noStrip: cur.i===1});
+      }
+    } else if(cur.ph==="lineup"){
+      drawScores(F, s, 1, 0, 0, {noStrip:true});
+      drawLineup(F, s, cur.p);
+    } else if(cur.ph==="draw"){
+      drawScores(F, s, 1, easeOut((cur.p-0.75)/0.25), cur.p);
+    } else { // add
+      drawScores(F, s, 1, 1, 1);
+      if(cur.p < 1) drawFlight(F, s, cur.p, L.nPrompt + cur.i);
+    }
+    F.cur = cur;
+  }
+
+  function bracketAt(L, idx){
+    if(idx < 1) return null;
+    var a = L.pos[idx-1], b = L.pos[idx], S = L.S;
+    if(a.row===b.row) return {single:true, x1:a.x, x2:b.x+b.w, y:b.y+S.bh+7};
+    return {single:false, parts:[{x1:a.x, x2:a.x+a.w, y:a.y+S.bh+7},{x1:b.x, x2:b.x+b.w, y:b.y+S.bh+7}]};
+  }
+  function drawBracket(ctx, B, alpha){
+    if(!B) return;
+    var parts = B.single ? [B] : B.parts;
+    ctx.globalAlpha = alpha; ctx.strokeStyle = THEME.ink; ctx.lineWidth = 1.5; ctx.lineCap = "round";
+    parts.forEach(function(b){ ctx.beginPath(); ctx.moveTo(b.x1+1, b.y-3); ctx.lineTo(b.x1+1, b.y); ctx.lineTo(b.x2-1, b.y); ctx.lineTo(b.x2-1, b.y-3); ctx.stroke(); });
+    ctx.globalAlpha = 1; ctx.lineCap = "butt";
+  }
+
+  function rowY(L, k){ return L.barsTop + k*L.S.rowH; }
+  // g: growth of the bars and the line (0-1); hl: highlight on the drawn token (0-1); m: the marker's drop (0-1), 0 for none
+  function drawScores(F, s, g, hl, m, opt){
+    opt = opt||{}; var L = F.L, S = L.S, ctx = F.ctx, K = FILM.K;
+    var lbA = clamp01(g*1.4);
+    // heading
+    ctx.globalAlpha = lbA;
+    var ctxq = ctxLabel(s.p2, s.p1);
+    text(ctx, fitText(ctx, ["after “"+ctxq+"”, the next token", "after “"+ctxq+"”"], L.sw, S.small), L.sx, L.headY, {size:S.small, color:THEME.dim});
+    var bh = Math.round(S.rowH*0.56);
+    for(var k=0;k<=K;k++){
+      var isRest = k===K, y = rowY(L,k), cy = y + S.rowH/2;
+      var p = isRest ? s.restP : s.top[k][1];
+      var chosen = isRest ? s.rank>=K : s.rank===k;
+      var lab = isRest ? L.restLab : tokLab(s.top[k][0]);
+      ctx.globalAlpha = lbA;
+      text(ctx, lab, L.labR, cy+S.lab*0.36, {size:S.lab, align:"right", color: chosen && hl>0.5 ? THEME.hotText : (isRest ? THEME.dim : THEME.ink)});
+      text(ctx, pc1(p).replace("under ","<"), L.sx+L.sw, cy+S.pc*0.36, {size:S.pc, align:"right", color:THEME.dim});
+      ctx.globalAlpha = 1;
+      var len = Math.max(2, L.bw*p)*g;
+      if(len > 0.5){
+        var rr = Math.min(3, len/2);
+        ctx.fillStyle = isRest ? THEME.grid : THEME.bar; roundRect(ctx, L.x0, cy-bh/2, len, bh, rr); ctx.fill();
+        if(isRest && !(chosen && hl>0)){ ctx.strokeStyle = THEME.longLine; ctx.lineWidth = 1; ctx.setLineDash([3,3]); roundRect(ctx, L.x0+0.5, cy-bh/2+0.5, Math.max(1,len-1), bh-1, Math.max(0, Math.min(3,(len-1)/2))); ctx.stroke(); ctx.setLineDash([]); }
+        if(chosen && hl>0){ ctx.globalAlpha = hl;
+          if(!isRest){ ctx.fillStyle = THEME.amberFill; roundRect(ctx, L.x0, cy-bh/2, len, bh, rr); ctx.fill(); }
+          ctx.strokeStyle = THEME.amberLine; ctx.lineWidth = 1.5; if(isRest) ctx.setLineDash([3,3]);
+          roundRect(ctx, L.x0+0.75, cy-bh/2+0.75, Math.max(1,len-1.5), bh-1.5, Math.min(3,Math.max(0,(len-1.5)/2))); ctx.stroke(); ctx.setLineDash([]); ctx.globalAlpha = 1; }
+      }
+    }
+    if(!opt.noStrip) drawStrip(F, s, g, hl, m);
+    else drawStripFrame(F, 1);
+  }
+  function drawStripFrame(F, alpha){
+    var L = F.L, S = L.S, ctx = F.ctx, y = L.stripTop, h = S.stripH;
+    ctx.globalAlpha = alpha;
+    text(ctx, "the draw", L.labR, y+h/2+S.lab*0.36, {size:S.lab, align:"right", color:THEME.dim});
+    text(ctx, "0", L.x0, y+h+14, {size:S.small, color:THEME.dim}); text(ctx, "1", L.x0+L.bw, y+h+14, {size:S.small, color:THEME.dim, align:"right"});
+    ctx.strokeStyle = THEME.longLine; ctx.lineWidth = 1; roundRect(ctx, L.x0+0.5, y+0.5, L.bw-1, h-1, 3); ctx.stroke();
+    ctx.globalAlpha = 1;
+  }
+  function stripSegs(L, s){
+    var segs = [], cum = 0;
+    for(var k=0;k<FILM.K;k++){ segs.push({k:k, a:cum, p:s.top[k][1]}); cum += s.top[k][1]; }
+    segs.push({k:FILM.K, a:cum, p:s.restP});
+    return segs;
+  }
+  function drawStrip(F, s, g, hl, m){
+    var L = F.L, S = L.S, ctx = F.ctx, y = L.stripTop, h = S.stripH, chosenK = Math.min(s.rank, FILM.K);
+    drawStripFrame(F, 1);
+    stripSegs(L, s).forEach(function(sg){ drawSeg(F, sg, g, (sg.k===chosenK && s.rank<FILM.K) ? hl : 0, 1); });
+    if(s.rank >= FILM.K && hl > 0){
+      var ox = L.x0 + s.at*L.bw*g, ow = Math.max(2.5, s.p*L.bw*g);
+      ctx.globalAlpha = hl; ctx.fillStyle = THEME.amberFill; ctx.fillRect(ox, y, ow, h); ctx.strokeStyle = THEME.amberLine; ctx.lineWidth = 1.5; ctx.strokeRect(ox-0.75, y+0.75, ow+1.5, h-1.5); ctx.globalAlpha = 1;
+    }
+    if(m > 0) drawMarker(F, s, m, g);
+  }
+  function drawSeg(F, sg, g, hl, alpha, at){
+    var L = F.L, S = L.S, ctx = F.ctx, isRest = sg.k===FILM.K;
+    var x = at ? at.x : L.x0 + sg.a*L.bw*g, y = at ? at.y : L.stripTop, w = at ? at.w : sg.p*L.bw*g, h = at ? at.h : S.stripH;
+    if(w < 0.3) return;
+    ctx.globalAlpha = alpha;
+    var gap = w > 3 ? 0.5 : 0;
+    ctx.fillStyle = isRest ? THEME.grid : THEME.bar;
+    if(at && at.r > 0.3){ roundRect(ctx, x, y, w, h, Math.min(at.r, w/2)); ctx.fill(); ctx.globalAlpha = 1; return; }
+    ctx.fillRect(x+gap, y, Math.max(0.6, w-2*gap), h);
+    if(hl > 0){ ctx.globalAlpha = alpha*hl; ctx.fillStyle = THEME.amberFill; ctx.fillRect(x+gap, y, Math.max(0.6, w-2*gap), h); ctx.strokeStyle = THEME.amberLine; ctx.lineWidth = 1.5; ctx.strokeRect(x+gap+0.75, y+0.75, Math.max(0.6, w-2*gap-1.5), h-1.5); }
+    ctx.globalAlpha = 1;
+    noteRect(x, y, w, h);
+  }
+  function drawMarker(F, s, m, g){
+    var L = F.L, S = L.S, ctx = F.ctx, y = L.stripTop, h = S.stripH;
+    // the marker falls only through the clear gap above the line, never across the last row of bars
+    var bh = Math.round(S.rowH*0.56), room = (y - 14 - S.small*0.8) - (rowY(L, FILM.K) + S.rowH/2 + bh/2) - 3;
+    var x = L.x0 + s.r*L.bw*g, off = (1-easeBack(m))*-Math.max(0, Math.min(20, room)), a = clamp01(m*3)*clamp01(g*1.4);
+    ctx.globalAlpha = a; ctx.fillStyle = THEME.amberLine; ctx.strokeStyle = THEME.amberLine;
+    ctx.beginPath(); ctx.moveTo(x-5, y-10+off); ctx.lineTo(x+5, y-10+off); ctx.lineTo(x, y-3+off); ctx.closePath(); ctx.fill();
+    if(m > 0.7){ ctx.globalAlpha = a*clamp01((m-0.7)/0.3); ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(x, y-3); ctx.lineTo(x, y+h+3); ctx.stroke(); }
+    ctx.globalAlpha = a;
+    var lab = rFmt(s.r)+(s.rank >= FILM.K && m >= 0.99 ? " \u00b7 "+tokLab(s.tok) : ""), lw = measure(ctx, lab, S.small);
+    var lx = Math.max(L.x0 + lw/2, Math.min(L.x0 + L.bw - lw/2, x));
+    text(ctx, lab, lx, y-14+off, {size:S.small, align:"center", color:THEME.hotText});
+    ctx.globalAlpha = 1;
+  }
+  // the bars leave their rows and line up end to end on the line from 0 to 1
+  function drawLineup(F, s, p){
+    var L = F.L, S = L.S, ctx = F.ctx, bh = Math.round(S.rowH*0.56), segs = stripSegs(L, s), n = segs.length, st = 0.08;
+    segs.forEach(function(sg){
+      var kp = easeIO((p - sg.k*st)/(1 - (n-1)*st));
+      var cy = rowY(L, sg.k) + S.rowH/2;
+      var at = {x:lerp(L.x0, L.x0+sg.a*L.bw, kp), y:lerp(cy-bh/2, L.stripTop, kp), w:Math.max(2, sg.p*L.bw), h:lerp(bh, S.stripH, kp), r:3*(1-kp)};
+      if(kp > 0) drawSeg(F, sg, 1, 0, lerp(0.85, 1, kp), at);
+    });
+  }
+  // the drawn token travels from its row to the end of the text
+  function drawFlight(F, s, p, destIdx){
+    var L = F.L, S = L.S, ctx = F.ctx, K = FILM.K, row = Math.min(s.rank, K);
+    var lab = tokLab(s.tok), cy = rowY(L, row) + S.rowH/2;
+    var lw = measure(ctx, lab, S.lab);
+    var x0 = L.labR - lw - S.pad, y0 = cy - S.bh/2;
+    var D = L.pos[destIdx], e = easeIO(p);
+    var size = lerp(S.lab, S.tok, e), w = measure(ctx, tokBlock(s.tok), size) + S.pad*2;
+    var cx = lerp(x0, D.x, e), cyy = lerp(y0, D.y, e) - Math.sin(Math.PI*e)*28;
+    ctx.fillStyle = (destIdx-L.nPrompt)%2===0 ? THEME.tints[0] : THEME.tints[2];
+    ctx.beginPath(); var r = 5; ctx.moveTo(cx+r,cyy); ctx.arcTo(cx+w,cyy,cx+w,cyy+S.bh,r); ctx.arcTo(cx+w,cyy+S.bh,cx,cyy+S.bh,r); ctx.arcTo(cx,cyy+S.bh,cx,cyy,r); ctx.arcTo(cx,cyy,cx+w,cyy,r); ctx.closePath(); ctx.fill();
+    ctx.strokeStyle = THEME.amberLine; ctx.lineWidth = 1.5; ctx.globalAlpha = 1-e; ctx.stroke(); ctx.globalAlpha = 1;
+    ctx.font = size+"px "+MONO; ctx.fillStyle = THEME.ink; ctx.textAlign = "left"; ctx.textBaseline = "alphabetic"; ctx.fillText(tokBlock(s.tok), cx+S.pad, cyy+S.bh*0.68);
+  }
+  // the closing picture: every drawn token with the score it had when it was drawn
+  function drawSummary(F, g){
+    var L = F.L, S = L.S, ctx = F.ctx, run = F.run, n = run.steps.length;
+    var top = L.barsTop, bottom = L.stripTop + S.stripH + 4 - 30, rh = Math.min(S.rowH, (bottom-top)/n), bh = Math.max(6, Math.round(rh*0.56));
+    var size = rh < 19 ? Math.max(10.5, S.lab-2) : S.lab, pcs = rh < 19 ? Math.max(10, S.pc-1.5) : S.pc;
+    var low = 0; run.steps.forEach(function(st,i){ if(st.p < run.steps[low].p) low = i; });
+    ctx.globalAlpha = clamp01(g*1.6);
+    text(ctx, fitText(ctx, ["the score each token had when it was drawn", "each token’s score when drawn"], L.sw, S.small), L.sx, L.headY, {size:S.small, color:THEME.dim});
+    run.steps.forEach(function(st,i){
+      var cy = top + i*rh + rh/2, isLow = i===low;
+      ctx.globalAlpha = clamp01(g*1.6);
+      text(ctx, tokLab(st.tok), L.labR, cy+size*0.36, {size:size, align:"right", color: isLow ? THEME.hotText : THEME.ink});
+      text(ctx, pc1(st.p).replace("under ","<"), L.sx+L.sw, cy+pcs*0.36, {size:pcs, align:"right", color:THEME.dim});
+      ctx.globalAlpha = 1;
+      var len = Math.max(2, L.bw*st.p)*g;
+      ctx.fillStyle = THEME.tints[0]; roundRect(ctx, L.x0, cy-bh/2, len, bh, Math.min(3, len/2)); ctx.fill();
+      if(isLow){ ctx.strokeStyle = THEME.amberLine; ctx.lineWidth = 1.5; roundRect(ctx, L.x0+0.75, cy-bh/2+0.75, Math.max(1,len-1.5), bh-1.5, Math.min(3, Math.max(0,(len-1.5)/2))); ctx.stroke(); }
+    });
+    var ty = top + n*rh + 12;
+    ctx.globalAlpha = clamp01((g-0.5)*2);
+    ctx.strokeStyle = THEME.longLine; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(L.x0, ty+0.5); ctx.lineTo(L.sx+L.sw, ty+0.5); ctx.stroke();
+    text(ctx, "together", L.labR, ty+18, {size:S.lab, align:"right", color:THEME.dim});
+    text(ctx, oneIn(filmProd(run)), L.x0, ty+18, {size:S.lab, color:THEME.hotText});
+    ctx.globalAlpha = 1;
+  }
+
+  function filmProd(run){ return run.steps.reduce(function(a,st){ return a*st.p; }, 1); }
+  function oneIn(prod){
+    var n = 1/prod;
+    if(n < 10) return "1 in "+n.toFixed(1).replace(/\.0$/,"");
+    if(n < 1e6){ var mag = Math.pow(10, Math.floor(Math.log10(n))-1); return "1 in "+(Math.round(n/mag)*mag).toLocaleString("en-GB"); }
+    return "1 in "+fmtN(n);
+  }
+  function filmNarr(F, cur){
+    var run = F.run, s = run.steps[cur.i], N = run.steps.length, V = s.n;
+    if(cur.ph==="end"){
+      var low = run.steps[0]; run.steps.forEach(function(st){ if(st.p < low.p) low = st; });
+      var m = N+(N===1?" token in 1 pass. ":" tokens in "+N+" passes. ");
+      if(!run.ended) m += "The run stopped at "+FILM.max+" tokens without drawing a full stop. ";
+      m += "The least likely pick was "+q(low.tok)+" at "+pc1(low.p)+", and the "+N+" draws together gave this exact "+(run.ended?"sentence":"text")+" a "+oneIn(filmProd(run))+" chance.";
+      return m+" Write again starts a new draw from “"+FILM.prompt+"”.";
+    }
+    var ctxq = "“"+ctxLabel(s.p2, s.p1)+"”";
+    var where = s.rank < FILM.K ? "lands in "+q(s.tok)+" at "+pc1(s.p) : "lands in the rest, on "+q(s.tok)+" at "+pc1(s.p);
+    var tieTop = s.top.length>1 && Math.abs(s.top[0][1]-s.top[1][1]) < 0.0005;
+    var level = s.rank>0 && Math.abs(s.p - s.fav[1]) < 0.0005;
+    var drawLine = "The draw, "+rFmt(s.r)+", "+where+(s.rank===0 ? (tieTop && cur.i>1 ? "." : ", the favourite.") : (level ? (cur.i>1 ? "." : ", level with "+q(s.fav[0])+".") : ", while "+q(s.fav[0])+" was the favourite at "+pc1(s.fav[1])+"."));
+    var last = cur.i===N-1;
+    var addLine = cap(q(s.tok))+" joins the text"+(last && run.ended ? " and the sentence ends." : (cur.i===0 ? ". This model reads only the last two tokens, so the next scores start from “"+ctxLabel(s.p1, s.tok)+"”." : "."));
+    if(cur.i===0){
+      if(cur.ph==="score") return "The model has scored all "+V+" tokens it knows for what comes after "+ctxq+". The six highest are listed, and the other "+s.restN+" share the last row.";
+      if(cur.ph==="lineup") return "Laid end to end, the scores fill a line from 0 to 1, and each token holds a stretch as long as its score.";
+      if(cur.ph==="draw") return "A random number between 0 and 1 picks a point on the line. "+drawLine;
+      return addLine;
+    }
+    if(cur.i===1){
+      if(cur.ph==="score" || cur.ph==="lineup") return "With one more token in the text the last two are now "+ctxq+", so every score is worked out again.";
+      if(cur.ph==="draw") return drawLine;
+      return addLine;
+    }
+    var lead = "After "+ctxq+", "+(tieTop ? q(s.top[0][0])+" and "+q(s.top[1][0])+" are level at "+pc1(s.top[0][1])+"." : (s.fav[1]>=0.5 ? q(s.fav[0])+" holds "+pc1(s.fav[1])+"." : s.n05+" tokens score above half a percent."));
+    if(cur.ph==="score") return lead;
+    if(cur.ph==="draw") return lead+" "+drawLine;
+    return last ? addLine : lead+" "+drawLine;
+  }
+
+  function filmEntry(sub){
+    var b = el("button",{class:"film-entry", onclick:function(){ openFilm(); }});
+    b.innerHTML = '<span class="fe-disc" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M9.5 6.8v10.4l8.4-5.2z" fill="currentColor"/></svg></span><span class="fe-t">Watch it write</span><span class="fe-s"></span>';
+    b.querySelector(".fe-s").textContent = sub;
+    return b;
+  }
+  function openFilm(){
+    var m = CUR.match(/^#\/c\/([a-z]+)/), c = m ? cardById(m[1]) : null;
+    FILM.from = c ? CUR : "#/"; FILM.fromLabel = c ? c.title : "All terms";
+    go("#/watch");
+  }
+
+  function renderWatch(root){
+    root.appendChild(backBar(FILM.fromLabel, FILM.from));
+    root.appendChild(el("span",{class:"eyebrow",text:"A short film"}));
+    root.appendChild(el("h2",{class:"title",text:"Watch it write"}));
+    var wrap = el("div",{class:"film-wide"});
+    var win = el("div",{class:"instrument film"});
+    var canvas = el("canvas",{role:"img","aria-label":"The model on this page writing a sentence one token at a time, with the scores and the draw for each token"});
+    win.appendChild(canvas); wrap.appendChild(win);
+    var controls = el("div",{class:"controls"});
+    controls.appendChild(el("span",{class:"cname"},[el("span",{text:"The film"}), el("span",{class:"label",text:labelText("live")})]));
+    var bPlay = el("button",{class:"chip"},["Pause"]), bStep = el("button",{class:"chip"},["One step"]), bAgain = el("button",{class:"chip action"},["Write again"]);
+    controls.appendChild(bPlay); controls.appendChild(bStep); controls.appendChild(bAgain);
+    wrap.appendChild(controls);
+    var readout = el("div",{class:"readout film-readout","aria-live":"polite"});
+    wrap.appendChild(readout);
+    root.appendChild(wrap);
+    var body = el("div",{class:"body"});
+    ["The film runs the loop from the Next token card on the small model this page trains when it opens. Every number on screen is the real arithmetic, at toy scale.",
+     "The draw is the raffle from the Sampling card. The scores are laid end to end on a line from 0 to 1, and a random number picks a point on that line. The token whose stretch it lands in is added to the text, so a token holding a fifth of the line is picked about one time in five.",
+     "This page’s model counts what followed the last two tokens in its training text. A full-size model reads everything in its window with a neural network, and it still writes one token per pass, drawing each one from a list of scores.",
+     "Write again starts a new run from the same three words. The opening run is one of these runs, picked because it ends in a full stop and reads as a sentence, and at this scale many others drift into nonsense."
+    ].forEach(function(p){ body.appendChild(el("p",{text:p})); });
+    root.appendChild(body);
+    var rel = el("div",{class:"related"},[el("span",{class:"cname",text:"Related"})]);
+    ["next","sampling","temperature","phases"].forEach(function(id){ var c=cardById(id); if(c) rel.appendChild(el("button",{class:"chip",onclick:function(){go("#/c/"+id);}},[c.title])); });
+    root.appendChild(rel);
+    var src = el("div",{class:"sources"},[el("span",{class:"cname",text:"Where this comes from"})]);
+    [["holtzman20","sampling"],["patel24","phases"]].forEach(function(pair){ var s=SOURCES[pair[0]], c=cardById(pair[1]); var f = c ? (c.from||[]).filter(function(x){return x.s===pair[0];})[0] : null;
+      if(f) src.appendChild(el("p",{class:"finding",text:f.t}));
+      var p=el("p",{class:"cite"},[s.cite+" "]); p.appendChild(el("a",{href:s.link,target:"_blank",rel:"noopener noreferrer",text:s.label})); p.appendChild(el("span",{class:"held",text:" · "+s.held})); src.appendChild(p); });
+    root.appendChild(src);
+    root.appendChild(footer());
+
+    var reduced = false; try { reduced = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches; } catch(e){}
+    var F = {canvas:canvas, ctx:canvas.getContext("2d"), dpr:Math.min(2, window.devicePixelRatio||1), t:0, playing:!reduced, target:null, reduced:reduced, lastNarr:"", lastBtn:"", dirty:true};
+    function setRun(i){ FILM.idx = i; F.run = filmRun(filmSeed(i)); F.T = filmTimeline(F.run, reduced); F.endT = F.T[F.T.length-1].t0; F.t = 0; F.target = null; layout(); }
+    function layout(){
+      var cssW = win.clientWidth - 24 - 2; if(cssW < 200) cssW = 200;
+      F.dpr = Math.min(2, window.devicePixelRatio||1);
+      F.L = filmLayout(F.ctx, cssW, F.run);
+      canvas.width = Math.round(cssW*F.dpr); canvas.height = Math.round(F.L.H*F.dpr);
+      canvas.style.width = cssW+"px"; canvas.style.height = F.L.H+"px";
+      F.dirty = true;
+    }
+    function ui(){
+      var atEnd = F.t >= F.endT;
+      var lbl = F.playing ? "Pause" : (atEnd && F.t >= F.endT + F.T[F.T.length-1].dT ? "Play again" : "Play");
+      if(lbl !== F.lastBtn){ bPlay.textContent = lbl; F.lastBtn = lbl; }
+      var dis = atEnd; bStep.disabled = dis; bStep.style.opacity = dis ? "0.4" : "";
+    }
+    bPlay.addEventListener("click", function(){
+      if(F.playing){ F.playing = false; F.target = null; }
+      else { if(F.t >= F.endT + F.T[F.T.length-1].dT){ F.t = 0; } F.target = null; F.playing = true; }
+      F.dirty = true; ui();
+    });
+    bStep.addEventListener("click", function(){
+      var cur = filmAt(F, F.t), nx = filmStartOf(F, cur.i+1, "score");
+      var tgt = nx ? nx.t0 + nx.dT : F.endT + F.T[F.T.length-1].dT;
+      if(reduced){ F.t = tgt; F.playing = false; F.target = null; }
+      else { F.target = tgt; F.playing = true; }
+      F.dirty = true; ui();
+    });
+    bAgain.addEventListener("click", function(){ setRun(FILM.idx+1); F.playing = true; F.dirty = true; ui(); });
+    setRun(0);
+    var last = null;
+    function frame(now){
+      if(!document.body.contains(canvas)){ window.removeEventListener("resize", onResize); return; }
+      if(last === null) last = now;
+      var dt = Math.min(100, now - last); last = now;
+      if(F.playing){
+        F.t += dt; F.dirty = true;
+        if(F.target !== null && F.t >= F.target){ F.t = F.target; F.target = null; F.playing = false; }
+        if(F.t >= F.endT + F.T[F.T.length-1].dT){ F.playing = false; }
+      }
+      if(F.dirty){
+        try { filmDraw(F); } catch(e){ showErr("film: "+(e&&e.message)); F.playing = false; }
+        var n = filmNarr(F, F.cur); if(n !== F.lastNarr){ readout.textContent = n; F.lastNarr = n; }
+        ui(); F.dirty = false;
+      }
+      requestAnimationFrame(frame);
+    }
+    var onResize = function(){ if(document.body.contains(canvas)){ layout(); } };
+    window.addEventListener("resize", onResize);
+    // test hook: render the film at a given time (ms)
+    window.__film = {seek:function(t){ F.t = t; F.playing = false; F.target = null; F.dirty = true; filmDraw(F); var n = filmNarr(F, F.cur); readout.textContent = n; F.lastNarr = n; ui(); return F.cur; }, dur:function(){ return F.endT + F.T[F.T.length-1].dT; }, T:function(){ return F.T.map(function(e){ return {i:e.i, ph:e.ph, t0:e.t0, dT:e.dT, dH:e.dH}; }); }, run:function(){ return F.run; }, L:function(){ return F.L; }, again:function(){ bAgain.click(); }, play:function(){ F.playing = true; ui(); }};
+    requestAnimationFrame(frame);
+  }
 
   // ---- errors
   function showErr(m){ var p=document.getElementById("errpill"); if(!p) return; p.textContent="This page hit an error: "+m; p.style.display="block"; }
