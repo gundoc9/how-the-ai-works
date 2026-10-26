@@ -240,7 +240,7 @@ var CARDS = [
   control:{name:"Patch size", options:[{l:"32 px",v:32},{l:"16 px",v:16},{l:"8 px",v:8}], def:0},
   body:[
     "The model takes only tokens. To read an image, the app cuts it into a grid of patches and turns each patch into a token. Then it reads them in order, like words.",
-    "Everything on the other cards applies to those patches. A big image fills the window. The model predicts from the patches, and it can be confidently wrong about what it sees, and it has still never seen your scan.",
+    "Everything on the other cards applies to those patches. A big image fills the window. The model predicts from the patches, and it can be confidently wrong about what it sees. Nothing inside it has looked at your scan; it has only read the numbers made from it.",
     "The window cuts a drawn image into patches and counts them. Smaller patches cost more tokens."
   ],
   analogy:"A radiologist reads a CT slice by slice in a fixed order and builds the picture from the sequence.",
@@ -336,7 +336,7 @@ var CARDS = [
   pic:"window",
   control:{name:"System prompt", options:[{l:"Hidden",v:"hidden"},{l:"Revealed",v:"revealed"}], def:0},
   body:[
-    "The model does not know it is an assistant. The app tells it, in plain text, at the top of every conversation: who it is, what tone to take, what to refuse, what tools it has. That text is read on every turn like everything else.",
+    "The model does not know which product it is in. The app tells it, in plain text, at the top of every conversation: who it is, what tone to take, what to refuse, what tools it has. That text is read on every turn like everything else.",
     "Your saved preferences, uploaded files and the date arrive the same way. There is no separate channel for instructions, so a pasted document can carry instructions the model mistakes for yours.",
     "The window shows the same conversation with the hidden block revealed."
   ],
@@ -386,7 +386,7 @@ var CARDS = [
   body:[
     "A model can only produce text. Tools work because the app watches for a request in an agreed shape and acts on it: a web search, a calculation, a look in your calendar, a piece of code to run. Whatever comes back is written into the window as more text.",
     "An agent is this loop run many times, with the model planning, acting, reading the result, and acting again.",
-    "Every tool result lands in the window with the same standing as your own words, so a search result can carry instructions the model may follow. The window shows one turn of the loop."
+    "Every tool result lands in the window as text the model reads like everything else, so a search result can carry instructions the model may follow. The window shows one turn of the loop."
   ],
   analogy:"The anaesthetist asks for a blood gas and cannot leave the patient; the runner goes, and the printout comes back to the room.",
   sources:["schick23","yao22"],
@@ -632,7 +632,7 @@ var ABOUT = {
   sim:"Cards marked Simulation run a real learning rule on rewards that this page sets. The learning is real; the rewards are invented to show it.",
   privacy:"Beyond this page and its icon nothing is downloaded, and nothing you type leaves your phone. Links to sources open only if you tap one.",
   more:[{t:"Reading the EEG", d:"the anaesthetic EEG, from the raw trace to burst suppression", link:"https://gundoc9.github.io/reading-the-eeg/"},{t:"Cannulation geometry", d:"entry angle, catheter length and where the tip ends up", link:"https://gundoc9.github.io/cannulation-geometry/"}],
-  version:"v25, built 22 October 2026"
+  version:"v26, built 26 October 2026"
 };
 if(typeof module!=="undefined") module.exports = {SOURCES:SOURCES, SECTIONS:SECTIONS, CARDS:CARDS, CLAIMS:CLAIMS, ABOUT:ABOUT};
 </script>
