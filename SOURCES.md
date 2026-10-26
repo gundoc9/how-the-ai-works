@@ -1,4 +1,4 @@
-# Sources and how far each was checked (v22, 12 September 2026)
+# Sources and how far each was checked (v26, 26 October 2026; the source list is unchanged since v22)
 
 What "checked" means here, in three grades:
 - **Full text read**: the paper was fetched and read in this session before the context was compacted; the numbers on the card were recorded at the time and one (six orders of magnitude) re-verified afterwards from the paper's own figure caption.
