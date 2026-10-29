@@ -186,6 +186,7 @@ input[type=text]::placeholder{color:#555;opacity:1}
 .allsrc a{font-family:var(--mono);font-size:13.5px;word-break:break-word}
 footer{margin:26px var(--gut) 0;padding-top:12px;border-top:2px solid var(--ink);font-size:13.5px;line-height:1.4}
 footer .fl{display:flex;align-items:center;gap:4px;flex-wrap:wrap}
+footer .cl{margin-top:7px}footer .cl a{color:inherit;text-decoration:underline;text-underline-offset:3px}
 footer button{font-weight:700;font-size:14.5px;min-height:44px;text-decoration:underline;text-underline-offset:3px}
 
 /* the film page */
@@ -1269,7 +1270,7 @@ if(typeof module!=="undefined") module.exports = ENGINE;
     return el("nav",{class:"nav","aria-label":"Previous and next"},[inner]);
   }
   function footer(){
-    return el("footer", null, [ el("div",{text:CREDS}), el("div",{class:"fl"},[el("button",{text:"About this page", onclick:function(){go("#/about");}}), el("span",{text:"·"}), el("button",{text:"All sources", onclick:function(){go("#/sources");}})]) ]);
+    return el("footer", null, [ el("div",{text:CREDS}), el("div",{class:"cl",text:"This page keeps nothing about you and sends nothing anywhere."}), el("div",{class:"cl",text:"Built with Claude (Anthropic). It wrote the code and the first draft of the text; every figure and source was checked by me."}), el("div",{class:"cl",html:"© 2026 Ganesh Sivasankara. Shared under <a href=\"https://creativecommons.org/licenses/by-nc-nd/4.0/\" target=\"_blank\" rel=\"noopener\">CC BY-NC-ND 4.0</a>: you may share it unchanged, with credit, but not for commercial use."}), el("div",{class:"cl",html:"Spotted an error? <a href=\"https://www.linkedin.com/in/ganeshsivasankara\" target=\"_blank\" rel=\"noopener\">Message me on LinkedIn</a>."}), el("div",{class:"fl"},[el("button",{text:"About this page", onclick:function(){go("#/about");}}), el("span",{text:"·"}), el("button",{text:"All sources", onclick:function(){go("#/sources");}})]) ]);
   }
   // the label: section band, name, one-line description, and the warning stripe
   function labelEl(o){
